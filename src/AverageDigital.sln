@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AverageDigital.Core", "Aver
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AverageDigital.Data.SQLServer", "AverageDigital.Data.SQLServer\AverageDigital.Data.SQLServer.csproj", "{67C995D7-3CB7-4A92-B9AF-5D6A4E78C275}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AverageDigital.Data.Odbc", "AverageDigital.Data.Odbc\AverageDigital.Data.Odbc.csproj", "{F60AB942-0C30-4C9B-8C85-228EEFD064D7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,14 @@ Global
 		{67C995D7-3CB7-4A92-B9AF-5D6A4E78C275}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{67C995D7-3CB7-4A92-B9AF-5D6A4E78C275}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{67C995D7-3CB7-4A92-B9AF-5D6A4E78C275}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F60AB942-0C30-4C9B-8C85-228EEFD064D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F60AB942-0C30-4C9B-8C85-228EEFD064D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F60AB942-0C30-4C9B-8C85-228EEFD064D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F60AB942-0C30-4C9B-8C85-228EEFD064D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30AFB9AC-71F9-42DD-A8AD-FE862E79E9EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30AFB9AC-71F9-42DD-A8AD-FE862E79E9EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30AFB9AC-71F9-42DD-A8AD-FE862E79E9EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30AFB9AC-71F9-42DD-A8AD-FE862E79E9EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

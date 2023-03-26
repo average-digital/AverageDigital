@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<Title>Average Digital - Odbc Adapter</Title>
+	<Authors>Average Digital</Authors>
+	<Description>Odbc adapter for AverageDigital.Data package.</Description>
+	<PackageProjectUrl>https://github.com/average-digital/AverageDigital</PackageProjectUrl>
+	<PackageIcon>logo.png</PackageIcon>
+	<PackageReadmeFile>README.md</PackageReadmeFile>
+	<RepositoryUrl>https://github.com/average-digital/AverageDigital</RepositoryUrl>
+	<PackageTags>AverageDigital, ODBC, Dapper</PackageTags>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\assets\logo.png" Link="logo.png">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Data.Odbc" Version="7.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AverageDigital.Data\AverageDigital.Data.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="README.md">
+      <PackagePath>\</PackagePath>
+      <Pack>True</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>
