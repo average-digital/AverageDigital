@@ -1,9 +1,9 @@
 ﻿using AverageDigital.Core.Data;
 using AverageDigital.Core.ExceptionHandling;
 using AverageDigital.Core.Threading;
-using AverageDigital.Data.Configuration;
 using Dapper;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Data;
 
 
@@ -16,44 +16,68 @@ namespace AverageDigital.Data
         private object _parameters;
         private Dictionary<string, DbType> _output;
         private CommandType _commandType = CommandType.StoredProcedure;
-        private bool _useLongTimeout;
+        private bool _useLongTimeout = false;
         private bool _buffered = true;
-        private string _connectionStringName;
+        private string _connectionString;
         private int _customTimeout = -1;
         private DynamicParameters _outputParameters;
-        internal static string ForcedConnectionString;
+        private bool? _logEnabled = null;
 
+        public static IConfiguration Configuration { get; set; }
 
-        private static DataSection DataSection;
-        public static IConfiguration Configuration;
+        private readonly string _defaultConnectionString;
+        private readonly bool _defaultLogEnabled = false;
+        private ILogger logger;
 
         public IDbConnectionFactory DbConnectionFactory { get; set; }
 
         public RepositoryDbAccess()
         {
-            var connectionStringName = Configuration["AverageData:DefaultConnectionString"];
+            if(Configuration == null)
+                throw new InvalidOperationException("Configuration is null");
+
+            var connectionStringName = Configuration["AverageDigital:DefaultConnectionString"];
             var connectionString = Configuration[$"ConnectionStrings:{connectionStringName}"];
+            var log = Configuration["AverageDigital:Log"];
 
-            if (connectionString == null) throw new Exception("MISSING CONN");
+            this._defaultLogEnabled = log == "true";
 
-            var settings = new DataSection
-            {
-                DefaultConnectionString = connectionString
-            };
-
-            DataSection = settings;
+            if (connectionString != null)
+                _defaultConnectionString = connectionString;
         }
 
         public string GetConnectionString(string name)
         {
-            return DataSection.DefaultConnectionString;
+            var connection = Configuration[$"ConnectionStrings:{name}"];
+
+            return connection ?? _defaultConnectionString;
         }
 
-        public RepositoryDbAccess UseConnection(string connectionStringName)
+        public RepositoryDbAccess UseConnection(string connectionString)
+        {
+            Throw.IfArgumentNullOrEmpty(connectionString, nameof(connectionString));
+
+            _connectionString = connectionString;
+            return this;
+        }
+
+        public RepositoryDbAccess UseConnectionString(string connectionStringName)
         {
             Throw.IfArgumentNullOrEmpty(connectionStringName, nameof(connectionStringName));
 
-            _connectionStringName = connectionStringName;
+            var connection = Configuration[$"ConnectionStrings:{connectionStringName}"];
+
+            if (connection == null)
+                throw new NullReferenceException($"No connection string with name \"{connectionStringName}\" was found");
+
+            _connectionString = connection;
+
+            return this;
+        }
+
+        public RepositoryDbAccess WithLog()
+        {
+            _logEnabled = true;
             return this;
         }
 
@@ -77,8 +101,7 @@ namespace AverageDigital.Data
 
         public RepositoryDbAccessWithOutput WithOutput(string name, DbType type)
         {
-            if (_output == null)
-                _output = new Dictionary<string, DbType>();
+            _output ??= new Dictionary<string, DbType>();
 
             if (_output.ContainsKey(name))
                 _output[name] = type;
@@ -96,7 +119,7 @@ namespace AverageDigital.Data
 
         public RepositoryDbAccess WithCustomTimeout(int timeout)
         {
-            if (timeout <= 0) throw new InvalidOperationException("Invalid timeout");
+            if (timeout <= 0) throw new InvalidOperationException("Invalid timeout.");
             _customTimeout = timeout;
             return this;
         }
@@ -107,6 +130,22 @@ namespace AverageDigital.Data
             return this;
         }
 
+        private void Log(string message)
+        {
+            if(logger != null)
+            {
+                logger.LogInformation(message);
+                return;
+            }
+
+            var shouldLog = _logEnabled ?? _defaultLogEnabled;
+
+            if (!shouldLog) return;
+
+            var date = DateTime.Now.ToString("HH:mm:ss");
+            Console.WriteLine($"[{date}] [AverageDigital.Data] - Executing '{message}'");
+        }
+
         private IDbConnection GetConnection()
         {
             IDbConnection connection;
@@ -115,7 +154,7 @@ namespace AverageDigital.Data
             {
                 var transaction = ThreadStorage.GetData<IDbTransaction>(TransactionScope.ScopeTransactionKey);
 
-                if (transaction != null)
+                if (transaction != null && transaction.Connection != null)
                     connection = transaction.Connection;
                 else
                 {
@@ -141,10 +180,9 @@ namespace AverageDigital.Data
         {
             Throw.IfReferenceNull(this.DbConnectionFactory, "DbConnectionFactory");
 
-            if (_connectionStringName == null)
-                _connectionStringName = DataSection.DefaultConnectionString;
+            _connectionString ??= _defaultConnectionString;
 
-            return this.DbConnectionFactory.GetDbConnection(_connectionStringName, this);
+            return this.DbConnectionFactory.GetDbConnection(_connectionString, this);
         }
 
         private bool ScopeIsActive => ThreadStorage.GetData<bool>(TransactionScope.ActiveScopeKey);
@@ -189,6 +227,7 @@ namespace AverageDigital.Data
 
             try
             {
+                Log(sql);
                 result = connection.Query(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
@@ -216,6 +255,7 @@ namespace AverageDigital.Data
 
             try
             {
+                Log(sql);
                 result = connection.Query<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
@@ -244,6 +284,7 @@ namespace AverageDigital.Data
 
             try
             {
+                Log(sql);
                 var reader = connection.QueryMultiple(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
@@ -275,6 +316,7 @@ namespace AverageDigital.Data
 
             try
             {
+                Log(sql);
                 var reader = connection.QueryMultiple(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
@@ -308,6 +350,7 @@ namespace AverageDigital.Data
 
             try
             {
+                Log(sql);
                 var reader = connection.QueryMultiple(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
@@ -342,6 +385,7 @@ namespace AverageDigital.Data
 
             try
             {
+                Log(sql);
                 result = await connection.QueryAsync<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
@@ -371,6 +415,7 @@ namespace AverageDigital.Data
 
             try
             {
+                Log(sql);
                 result = connection.Query<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
@@ -401,6 +446,7 @@ namespace AverageDigital.Data
 
             try
             {
+                Log(sql);
                 var queryResult = await connection.QueryAsync<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
@@ -430,6 +476,7 @@ namespace AverageDigital.Data
 
             try
             {
+                Log(sql);
                 return connection.Query<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
@@ -453,6 +500,7 @@ namespace AverageDigital.Data
 
             try
             {
+                Log(sql);
                 connection.Execute(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
@@ -479,6 +527,7 @@ namespace AverageDigital.Data
 
             try
             {
+                Log(sql);
                 var queryResult = await connection.QueryAsync<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
