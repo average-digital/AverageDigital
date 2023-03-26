@@ -13,8 +13,8 @@
     <RepositoryUrl>https://github.com/average-digital/AverageDigital</RepositoryUrl>
     <PackageTags>AverageDigital, Dapper, Data</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Version>1.0.2</Version>
-    <PackageReleaseNotes>Adds logger feature.</PackageReleaseNotes>
+    <Version>1.0.4</Version>
+    <PackageReleaseNotes>Remove Configuration as required.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

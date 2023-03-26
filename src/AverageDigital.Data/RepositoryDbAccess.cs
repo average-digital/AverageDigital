@@ -1,10 +1,10 @@
-﻿using AverageDigital.Core.Data;
+﻿using System.Data;
+using AverageDigital.Core.Data;
 using AverageDigital.Core.ExceptionHandling;
 using AverageDigital.Core.Threading;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Data;
 
 
 namespace AverageDigital.Data
@@ -31,10 +31,11 @@ namespace AverageDigital.Data
 
         public IDbConnectionFactory DbConnectionFactory { get; set; }
 
+        private IList<string> _prependQueries = new List<string>();
+
         public RepositoryDbAccess()
         {
-            if(Configuration == null)
-                throw new InvalidOperationException("Configuration is null");
+            if (Configuration == null) return;
 
             var connectionStringName = Configuration["AverageDigital:DefaultConnectionString"];
             var connectionString = Configuration[$"ConnectionStrings:{connectionStringName}"];
@@ -48,9 +49,19 @@ namespace AverageDigital.Data
 
         public string GetConnectionString(string name)
         {
-            var connection = Configuration[$"ConnectionStrings:{name}"];
+            if (Configuration != null)
+            {
+                var connection = Configuration[$"ConnectionStrings:{name}"];
+                return connection ?? _defaultConnectionString;
+            }
 
-            return connection ?? _defaultConnectionString;
+            return _defaultConnectionString;
+        }
+
+        public RepositoryDbAccess PrependQuery(string query)
+        {
+            _prependQueries.Add(query);
+            return this;
         }
 
         public RepositoryDbAccess UseConnection(string connectionString)
@@ -132,7 +143,7 @@ namespace AverageDigital.Data
 
         private void Log(string message)
         {
-            if(logger != null)
+            if (logger != null)
             {
                 logger.LogInformation(message);
                 return;
@@ -227,6 +238,15 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        connection.Execute(query);
+                    }
+                }
+
                 Log(sql);
                 result = connection.Query(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
@@ -240,6 +260,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
 
             return result;
@@ -255,6 +277,15 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        connection.Execute(query);
+                    }
+                }
+
                 Log(sql);
                 result = connection.Query<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
@@ -268,6 +299,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
 
             return result;
@@ -284,6 +317,15 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        connection.Execute(query);
+                    }
+                }
+
                 Log(sql);
                 var reader = connection.QueryMultiple(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
@@ -299,6 +341,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
 
             return new Tuple<IEnumerable<T1>, IEnumerable<T2>>(result1, result2);
@@ -316,6 +360,15 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        connection.Execute(query);
+                    }
+                }
+
                 Log(sql);
                 var reader = connection.QueryMultiple(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
@@ -332,6 +385,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
 
             return new Tuple<IEnumerable<T1>, IEnumerable<T2>, IEnumerable<T3>>(result1, result2, result3);
@@ -350,6 +405,15 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        connection.Execute(query);
+                    }
+                }
+
                 Log(sql);
                 var reader = connection.QueryMultiple(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
@@ -367,6 +431,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
 
             return new Tuple<IEnumerable<T1>, IEnumerable<T2>, IEnumerable<T3>, IEnumerable<T4>>(result1, result2, result3, result4);
@@ -385,6 +451,15 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        await connection.ExecuteAsync(query);
+                    }
+                }
+
                 Log(sql);
                 result = await connection.QueryAsync<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
@@ -397,6 +472,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
 
             return result;
@@ -415,6 +492,15 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        connection.Execute(query);
+                    }
+                }
+
                 Log(sql);
                 result = connection.Query<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
@@ -428,6 +514,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
 
             return result;
@@ -446,6 +534,15 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        await connection.ExecuteAsync(query);
+                    }
+                }
+
                 Log(sql);
                 var queryResult = await connection.QueryAsync<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
@@ -459,6 +556,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
 
             return result;
@@ -476,6 +575,14 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        connection.Execute(query);
+                    }
+                }
                 Log(sql);
                 return connection.Query<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
@@ -489,6 +596,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
         }
 
@@ -500,6 +609,15 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        connection.Execute(query);
+                    }
+                }
+
                 Log(sql);
                 connection.Execute(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
@@ -512,6 +630,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
         }
 
@@ -527,6 +647,14 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        await connection.ExecuteAsync(query);
+                    }
+                }
                 Log(sql);
                 var queryResult = await connection.QueryAsync<T>(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
@@ -541,6 +669,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
         }
 
@@ -550,6 +680,16 @@ namespace AverageDigital.Data
 
             try
             {
+                if (_prependQueries.HasItems())
+                {
+                    foreach (var query in _prependQueries)
+                    {
+                        Log(query);
+                        await connection.ExecuteAsync(query);
+                    }
+                }
+                Log(sql);
+
                 await connection.ExecuteAsync(sql, GetParameters(),
                     commandTimeout: _customTimeout > 0
                         ? _customTimeout
@@ -561,6 +701,8 @@ namespace AverageDigital.Data
             {
                 if (!ScopeIsActive)
                     connection.Dispose();
+
+                _prependQueries = new List<string>();
             }
         }
 
