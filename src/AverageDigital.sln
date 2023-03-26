@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AverageDigital.Data.SQLServ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AverageDigital.Data.Odbc", "AverageDigital.Data.Odbc\AverageDigital.Data.Odbc.csproj", "{F60AB942-0C30-4C9B-8C85-228EEFD064D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AverageDigital.Data.Oracle", "AverageDigital.Data.Oracle\AverageDigital.Data.Oracle.csproj", "{30AFB9AC-71F9-42DD-A8AD-FE862E79E9EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
